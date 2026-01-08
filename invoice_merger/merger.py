@@ -248,9 +248,9 @@ class InvoiceMerger:
         if duplicate_count > 0:
             print(f"\n已去除 {duplicate_count} 个重复文件")
 
-        # 对每个月内的文件按日期排序
+        # 对每个月内的文件按票价排序（方便财务审计）
         for month_key in groups:
-            groups[month_key].sort(key=lambda x: x[0])
+            groups[month_key].sort(key=lambda x: x[2])  # x[2] 是金额
 
         return groups
 
