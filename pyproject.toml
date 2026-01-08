@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "invoice-merger"
+version = "1.0.0"
+description = "将电子发票按月份自动分组并合并到A4纸上，便于打印报销"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = ["invoice", "pdf", "merge", "train-ticket", "电子发票"]
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "pymupdf>=1.20.0",
+    "tqdm>=4.60.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/luzhongqiu/invoice-merger"
+"Bug Reports" = "https://github.com/luzhongqiu/invoice-merger/issues"
+"Source" = "https://github.com/luzhongqiu/invoice-merger"
+
+[project.scripts]
+invoice-merger = "invoice_merger.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["invoice_merger*"]
+exclude = ["tests*", "data*"]
