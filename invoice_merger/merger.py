@@ -254,7 +254,7 @@ class InvoiceMerger:
 
         return groups
 
-    def merge_pdfs(self, pdf_list: List[Tuple[datetime, Path, float]], output_path: Path) -> Tuple[int, float]:
+    def merge_pdfs(self, pdf_list: List[Tuple[datetime, Path, float]], output_path: Path) -> Tuple[int, float, Dict[float, int]]:
         """
         将多个PDF合并到A4纸上，保持原始宽高比
 
@@ -263,7 +263,7 @@ class InvoiceMerger:
             output_path: 输出文件路径
 
         Returns:
-            (票数量, 总金额)元组
+            (票数量, 总金额, 按票价分组的统计字典)元组
         """
         output_doc = fitz.open()
 
@@ -279,10 +279,12 @@ class InvoiceMerger:
 
         total_count = 0
         total_amount = 0.0
+        amount_groups = defaultdict(int)  # 按票价分组统计
 
         for _, pdf_path, amount in tqdm(pdf_list, desc="合并PDF", unit="个", leave=False):
             total_count += 1
             total_amount += amount
+            amount_groups[amount] += 1  # 按票价分组计数
             try:
                 src_doc = fitz.open(pdf_path)
 
@@ -337,7 +339,7 @@ class InvoiceMerger:
         output_doc.close()
         tqdm.write(f"✓ 已生成: {output_path.name} ({total_count}张票, {total_amount:.2f}元)")
 
-        return total_count, total_amount
+        return total_count, total_amount, dict(amount_groups)
 
     def run(self):
         """运行发票合并流程"""
@@ -364,11 +366,12 @@ class InvoiceMerger:
         statistics = []
         for month_key, files in sorted(groups.items()):
             output_path = self.output_folder / f"{month_key}.pdf"
-            count, amount = self.merge_pdfs(files, output_path)
+            count, amount, amount_groups = self.merge_pdfs(files, output_path)
             statistics.append({
                 'filename': f"{month_key}.pdf",
                 'count': count,
-                'amount': amount
+                'amount': amount,
+                'amount_groups': amount_groups  # 按票价分组的统计
             })
 
         # 4. 生成统计文件
@@ -382,12 +385,25 @@ class InvoiceMerger:
             total_amount = 0.0
 
             for stat in statistics:
+                # 写入月份汇总
                 line = f"{stat['filename']:20s}  票数量: {stat['count']:3d}张  总金额: {stat['amount']:8.2f}元\n"
                 f.write(line)
+
+                # 写入详细的票价分组统计
+                amount_groups = stat['amount_groups']
+                if amount_groups:
+                    # 按票价排序
+                    for price in sorted(amount_groups.keys()):
+                        ticket_count = amount_groups[price]
+                        subtotal = price * ticket_count
+                        f.write(f"  票价: {price:7.2f}元  ×  {ticket_count:3d}张  =  {subtotal:8.2f}元\n")
+
+                f.write("\n")  # 每个月份后空一行
+
                 total_count += stat['count']
                 total_amount += stat['amount']
 
-            f.write("\n" + "-" * 60 + "\n")
+            f.write("-" * 60 + "\n")
             f.write(f"{'合计':20s}  票数量: {total_count:3d}张  总金额: {total_amount:8.2f}元\n")
             f.write("=" * 60 + "\n")
 

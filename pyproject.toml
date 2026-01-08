@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "invoice-merger"
-version = "1.0.0"
+version = "1.1.0"
 description = "将电子发票按月份自动分组并合并到A4纸上，便于打印报销"
 readme = "README.md"
 requires-python = ">=3.8"
